@@ -1,0 +1,28 @@
+definitions:
+  dto.VersionResponseDTO:
+    properties:
+      app_version:
+        type: string
+      current_timestamp:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /system/version:
+    get:
+      description: Returns the current version of the application and the current
+        timestamp
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.VersionResponseDTO'
+        "500":
+          description: Internal Server Error
+      summary: Get application version1
+      tags:
+      - System
+swagger: "2.0"

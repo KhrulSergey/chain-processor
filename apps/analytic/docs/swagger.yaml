@@ -1,0 +1,229 @@
+definitions:
+  dto.TokenResponseDTO:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      id_token:
+        type: string
+      refresh_token:
+        type: string
+      scope:
+        type: string
+      token_type:
+        type: string
+    type: object
+  dto.VersionResponseDTO:
+    properties:
+      app_version:
+        type: string
+      current_timestamp:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /activate:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: activates user by setting up new login and password
+      parameters:
+      - description: code which is sent to user's email during registration (embedded
+          in link)
+        in: query
+        name: activation_code
+        required: true
+        type: string
+      - description: user login
+        format: email
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: user password
+        format: password
+        in: formData
+        name: password
+        required: true
+        type: string
+      responses:
+        "204":
+          description: user credentials are updeted
+        "400":
+          description: Bad Request
+        "401":
+          description: unable to authenticate with activation  code
+        "409":
+          description: login is taken already
+        "500":
+          description: Internal Server Error
+      summary: Initialize user's login and password
+      tags:
+      - user
+  /authorize:
+    get:
+      description: redirects user to login page
+      parameters:
+      - description: authentication response type
+        enum:
+        - code
+        in: query
+        name: response_type
+        required: true
+        type: string
+      - description: id of the client (application)
+        format: uuid
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: url to redirect after successful authentication
+        format: uri
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      - description: a list of scopes (open_id,profile,phone,email) for ID token separated
+          by ' '
+        in: query
+        name: scope
+        required: true
+        type: string
+      responses:
+        "302":
+          description: redirects to login page
+        "400":
+          description: Bad Request
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Redirect to login
+      tags:
+      - auth
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: authenticates user using OpenId Listen
+      parameters:
+      - description: authentication response type
+        enum:
+        - code
+        in: query
+        name: response_type
+        required: true
+        type: string
+      - description: id of the client (application)
+        format: uuid
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: url to redirect after successful authentication
+        format: uri
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      - description: a list of scopes (open_id,profile,phone,email) for ID token separated
+          by ' '
+        in: query
+        name: scope
+        required: true
+        type: string
+      - description: user login
+        format: email
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: user password
+        format: password
+        in: formData
+        name: password
+        required: true
+        type: string
+      responses:
+        "302":
+          description: redirects to 'redirect_uri' with authentication credentials
+            in query based on response type
+        "400":
+          description: Bad Request
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Authenticates user
+      tags:
+      - auth
+  /system/version:
+    get:
+      description: Returns the current version of the application and the current
+        timestamp
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.VersionResponseDTO'
+        "500":
+          description: Internal Server Error
+      summary: Get application version
+      tags:
+      - System
+  /token:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: generates token for user
+      parameters:
+      - description: authentication type
+        enum:
+        - authorization_code
+        in: formData
+        name: grant_type
+        required: true
+        type: string
+      - description: id of the client (application)
+        format: uuid
+        in: formData
+        name: client_id
+        required: true
+        type: string
+      - description: secret of the client (application)
+        format: password
+        in: formData
+        name: client_secret
+        required: true
+        type: string
+      - description: authentication code
+        in: formData
+        name: code
+        required: true
+        type: string
+      - description: redirect uri which was used for authentication
+        format: uri
+        in: formData
+        name: redirect_uri
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TokenResponseDTO'
+        "400":
+          description: Bad Request
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Token generation
+      tags:
+      - auth
+swagger: "2.0"

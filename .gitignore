@@ -1,0 +1,35 @@
+# Binaries for programs and plugins
+*.test
+*.out
+
+# Output of the go coverage tool
+*.cover
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+
+# IDE specific files
+.idea/
+.vscode/
+*.iml
+
+# OS generated files
+.DS_Store
+
+*/build/
+
+.env
+/temp/
+/tmp/
+/.docker/clickhouse/
