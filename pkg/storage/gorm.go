@@ -3,18 +3,13 @@ package storage
 import (
 	"crypto/tls"
 	"fmt"
-	std_ck "github.com/ClickHouse/clickhouse-go/v2"
+	stdck "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/khrulsergey/chain-processor/config"
 	"gorm.io/driver/clickhouse"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"time"
 )
-
-//var (
-//	//go:embed migrations/*.sql
-//	migrations embed.FS
-//)
 
 func NewGormPgDB(config *config.PgDBConfig) (*gorm.DB, error) {
 	connectionString := fmt.Sprintf(
@@ -54,26 +49,26 @@ func sslConnectionParams(dbRootCA string) string {
 
 func NewGormChDB(config *config.ChDBConfig) (*gorm.DB, error) {
 	var chTls *tls.Config = nil
-	if config.DatabaseSSL == true {
+	if config.DatabaseSSL {
 		chTls = &tls.Config{
 			InsecureSkipVerify: true,
 		}
 	}
-	sqlDB := std_ck.OpenDB(&std_ck.Options{
-		Protocol: std_ck.HTTP,
+	sqlDB := stdck.OpenDB(&stdck.Options{
+		Protocol: stdck.HTTP,
 		Addr:     []string{config.DatabaseHost + ":" + config.DatabasePort},
-		Auth: std_ck.Auth{
+		Auth: stdck.Auth{
 			Database: config.DatabaseName,
 			Username: config.DatabaseUser,
 			Password: config.DatabasePassword,
 		},
 		TLS: chTls,
-		Settings: std_ck.Settings{
+		Settings: stdck.Settings{
 			"max_execution_time": 60,
 		},
 		DialTimeout: 5 * time.Second,
-		Compression: &std_ck.Compression{
-			Method: std_ck.CompressionLZ4,
+		Compression: &stdck.Compression{
+			Method: stdck.CompressionLZ4,
 		},
 		Debug: true,
 	})

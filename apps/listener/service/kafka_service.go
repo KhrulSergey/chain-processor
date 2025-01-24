@@ -11,12 +11,17 @@ import (
 	"reflect"
 )
 
+// kafkaWriter Define an interface to abstract kafka.Writer
+type kafkaWriter interface {
+	WriteMessages(ctx context.Context, msgs ...kafka.Message) error
+}
+
 type KafkaService interface {
 	ProduceMessage(messageData interface{}) error
 }
 
 type kafkaService struct {
-	producer    *kafka.Writer
+	producer    kafkaWriter
 	kafkaConfig *config.KafkaConfig
 	log         logger.Logger
 }
@@ -29,6 +34,7 @@ func NewKafkaService(kafkaConfig *config.KafkaConfig, log logger.Logger) KafkaSe
 			ClientID: kafkaConfig.ListenerProducerId,
 		},
 	}
+
 	return &kafkaService{
 		kafkaConfig: kafkaConfig,
 		producer:    producer,
@@ -53,14 +59,42 @@ func (ks *kafkaService) sendToKafka(messageData interface{}, topic string) error
 	}
 	encodedData, err := json.Marshal(messageData)
 	if err != nil {
+		ks.log.Errorf("Failed to marshal message data for topic %s: %v", topic, err) // Log the failure
 		return err
 	}
 
-	return ks.producer.WriteMessages(context.Background(),
+	err = ks.producer.WriteMessages(context.Background(),
 		kafka.Message{
 			Topic: topic,
 			Key:   keyBytes,
 			Value: encodedData,
 		},
 	)
+
+	if err != nil {
+		ks.log.Errorf("Failed to write message to Kafka topic %s: %v", topic, err) // Log the error here
+		return err
+	}
+
+	return nil
 }
+
+//func (ks *kafkaService) sendToKafka(messageData interface{}, topic string) error {
+//	keyBytes, err := json.Marshal(uuid.New())
+//	if err != nil {
+//		ks.log.Errorf("Failed to marshal key: %v", err)
+//		return err
+//	}
+//	encodedData, err := json.Marshal(messageData)
+//	if err != nil {
+//		return err
+//	}
+//
+//	return ks.producer.WriteMessages(context.Background(),
+//		kafka.Message{
+//			Topic: topic,
+//			Key:   keyBytes,
+//			Value: encodedData,
+//		},
+//	)
+//}
